@@ -1,0 +1,54 @@
+---
+title: "Business Analytics- Assignement 1: Setting Up R"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+date: "10-01-2022"
+Description: Correlation between sales and price.
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+```{r}
+#command to run "ISLR" package in current environment
+library("ISLR")
+abhi<-Carseats #command to store data set in a data frame.
+View(abhi) #command to check if data frame is executed properly.
+```
+
+```{r}
+#command to execute and print the mean, median and min. and max. values of data frame.
+summary(abhi)
+print(abhi)
+
+nrow(abhi) #command to check number of observations in the data set
+```
+
+
+
+```{r}
+#command to executed to show the maximum value of Advertising attribute
+max(abhi$Advertising)
+```
+
+```{r}
+#command to executed to show the IQR value of Price attribute
+IQR(abhi$Price)
+```
+
+```{r}
+#command to execute plot sales against price for in the current data frame.
+
+plot(abhi$Sales, abhi$Price)
+```
+
+```{r}
+#correlation between sales and price attributes
+
+cor.test(abhi$Sales,abhi$Price) 
+
+#The correlation between sales and price attributes is Negative. A Negative correlation have an inverse relationship which means one increases as the other decreases.
+```
