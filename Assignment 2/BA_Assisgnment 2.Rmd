@@ -1,0 +1,157 @@
+---
+title: "BA_Assignment 2"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+  html_notebook: default
+---
+
+
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+getwd()
+setwd("/Users/thupiliabhinav/Desktop/BA/BA_Assignement 2")
+assign_1 <- read.csv("Online_Retail.csv")
+
+```
+#1.Breakdown of the number of transactions by countries. Transactions in percentages. Only 1% of transactions.
+```{r}
+ans1<- group_by(assign_1, Country)%>% count(Country) 
+ans1
+ans12<- ans1$n*100/sum(ans1$n)
+ans12
+
+ans123<-subset(ans12, ans12>1) 
+ans123
+```
+#2.New variable "TransactionValue" and binding to the original dataframe.
+```{r}
+TransactionValue<- assign_1$Quantity*assign_1$UnitPrice
+b_ans1<-cbind(assign_1,TransactionValue)
+head(b_ans1)
+```
+#3.Breakdown of transaction values by countries. Total transaction exceeding 130,000 British Pound.
+
+```{r}
+c_ans1<- summarise(group_by(b_ans1,Country), total.value= sum(TransactionValue))
+c_ans12 <- filter(c_ans1, total.value>130000)
+c_ans12
+```
+#4.Converting ‘InvoiceDate’ into a POSIXlt object.
+
+```{r}
+Temp=strptime(b_ans1$InvoiceDate,format='%m/%d/%Y %H:%M',tz='GMT')
+head(Temp)
+```
+
+#4.i. Day of the week and hour components dataframe with names as New_Invoice_Date, Invoice_Day_Week and New_Invoice_Hour:
+```{r}
+b_ans1$New_Invoice_Date <- as.Date(Temp)
+```
+
+$4.ii.Date objects
+```{r}
+b_ans1$New_Invoice_Date[20000]- b_ans1$New_Invoice_Date[10]
+```
+#4.iii.Convert dates to days of the week
+```{r}
+b_ans1$Invoice_Day_Week= weekdays(b_ans1$New_Invoice_Date)
+```
+
+#4.iv.Convert into a normal numerical value
+```{r}
+b_ans1$New_Invoice_Hour = as.numeric(format(Temp, "%H"))
+```
+
+#4.v.Month as a separate numeric variable
+```{r}
+b_ans1$New_Invoice_Month = as.numeric(format(Temp, "%m"))
+```
+
+#4.a.Percentage of transactions (by numbers) by days of the week
+```{r}
+n_transactions<- group_by(b_ans1, Invoice_Day_Week) %>% summarise(value=n()) %>% mutate(percentage=value/nrow(b_ans1)*100)
+n_transactions
+```
+
+#4.b.Percentage of transactions (by transaction volume) by days of the week
+```{r}
+n_transactions1 <- group_by(b_ans1, Invoice_Day_Week) %>% summarise(value= sum(TransactionValue)) %>% mutate(total= value/sum(value)*100)
+n_transactions1
+``` 
+
+#4.c.Percentage of transactions (by transaction volume) by month of the year
+```{r}
+n_transactions2 <- group_by(b_ans1, New_Invoice_Month) %>% summarise(value= sum(TransactionValue)) %>% mutate(total= value/sum(value)*100)
+n_transactions2
+```
+
+#4.d.The date with the highest number of transactions from Australia?
+```{r}
+n_transactions3<- group_by(b_ans1, Country) %>% filter(Country=="Australia") %>% group_by(New_Invoice_Date) %>% summarise(value= n()) %>% arrange(desc(value))
+n_transactions3
+```
+
+#5
+```{r}
+germany_values<- subset(b_ans1$TransactionValue, b_ans1$Country == 'Germany')
+hist(germany_values)
+```
+
+#6.Customer had the highest number of transactions. Most valuable customer.
+```{r}
+
+f_1 <-group_by(b_ans1,CustomerID) %>% select('CustomerID') %>%  na.omit(b_ans1) %>% summarise(value = n()) %>% arrange(desc(value))
+f_1[which.max(f_1$value),]
+
+#Customer-ID 17841 has the highest number of transactions 
+
+f_ans<- summarise(group_by(b_ans1,CustomerID), Value= sum(TransactionValue)) %>% na.omit(b_ans1) 
+f_ans[which.max(f_ans$Value),]
+
+#The most valuable customer is Customer-ID-14646.
+```
+
+#7. Percentage of missing values for each variable in the dataset
+```{r}
+missing_val<- colMeans(is.na(b_ans1)*100)
+missing_val
+```
+
+#8.Number of transactions with missing CustomerID records by countries?
+```{r}
+missing_transaction <- b_ans1 %>% filter(is.na(CustomerID)) %>% group_by(Country)
+summary(missing_transaction$Country)
+```
+
+
+#10.What is the return rate for the French customers?
+```{r}
+returns <- filter(b_ans1,Country=="France", Quantity<0) %>% count()
+total_value<- filter(b_ans1, Country=="France") %>% count()
+
+percentage_returns<- returns/total_value*100
+percentage_returns
+```
+
+#11.Product that has generated the highest revenue for the retailer
+```{r}
+revenue<-b_ans1 %>% select(StockCode,TransactionValue) %>% group_by(StockCode) %>% summarise(sum= sum(TransactionValue)) %>% arrange(desc(sum))
+revenue
+
+#DOT has the highest revenue generated with sum of 206245.48
+```
+
+#12.unique customers are represented in the dataset
+```{r}
+unique_customer<- b_ans1%>% select(CustomerID) %>% unique() %>% count()
+unique_customer
+```
+
